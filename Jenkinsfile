@@ -2,59 +2,38 @@ pipeline {
 
     agent any
 
-    parameters {
-
-        choice(
-            name: 'ENVIRONMENT',
-            choices: ['dev', 'staging', 'production'],
-            description: 'Select the environment'
-        )
-
-        choice(
-            name: 'BROWSER',
-            choices: ['chromium', 'firefox'],
-            description: 'Select browser'
-        )
-
-        booleanParam(
-            name: 'DRY_RUN',
-            defaultValue: false,
-            description: 'If true, only print commands'
-        )
+    triggers {
+        cron('0 0 * * *')
+        githubPush()
     }
 
     stages {
 
-        stage('Display Parameters') {
+        stage('Quick Check - Smoke Tests') {
+
             steps {
-                echo "Environment : ${params.ENVIRONMENT}"
-                echo "Browser      : ${params.BROWSER}"
-                echo "Dry Run      : ${params.DRY_RUN}"
+                echo "GitHub Push Build"
+                echo "Running Smoke Tests..."
+
+                // Replace with your Playwright command later
+                bat 'echo npx playwright test --grep @smoke'
             }
         }
 
-        stage('Run Tests') {
+        stage('Full Regression') {
+
+            when {
+                triggeredBy 'TimerTrigger'
+            }
 
             steps {
 
-                script {
+                echo "Nightly Scheduled Build"
 
-                    if (params.DRY_RUN) {
+                echo "Running Full Regression..."
 
-                        echo "Dry Run Enabled"
-
-                        echo "Command:"
-                        echo "npx playwright test --project=${params.BROWSER}"
-
-                    } else {
-
-                        echo "Executing Tests..."
-
-                        bat "echo Running tests on ${params.ENVIRONMENT} using ${params.BROWSER}"
-
-                    }
-
-                }
+                // Replace with your Playwright command later
+                bat 'echo npx playwright test'
 
             }
 
